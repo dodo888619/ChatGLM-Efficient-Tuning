@@ -37,7 +37,7 @@ class Runner:
         if not model_name_or_path:
             return None, ALERTS["err_no_path"][lang], None, None
 
-        if len(dataset) == 0:
+        if not dataset:
             return None, ALERTS["err_no_dataset"][lang], None, None
 
         self.aborted = False

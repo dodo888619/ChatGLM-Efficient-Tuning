@@ -14,13 +14,11 @@ logger = get_logger(__name__)
 
 def get_state_dict(model: torch.nn.Module, trainable_only: Optional[bool] = True) -> Dict[str, torch.Tensor]:
     state_dict = model.state_dict()
-    filtered_state_dict = {}
-
-    for k, v in model.named_parameters():
-        if (not trainable_only) or v.requires_grad:
-            filtered_state_dict[k] = state_dict[k].cpu().clone().detach()
-
-    return filtered_state_dict
+    return {
+        k: state_dict[k].cpu().clone().detach()
+        for k, v in model.named_parameters()
+        if (not trainable_only) or v.requires_grad
+    }
 
 
 def load_trainable_params(model: torch.nn.Module, checkpoint_dir: os.PathLike) -> bool:
@@ -31,7 +29,9 @@ def load_trainable_params(model: torch.nn.Module, checkpoint_dir: os.PathLike) -
     elif os.path.exists(os.path.join(checkpoint_dir, WEIGHTS_INDEX_NAME)):
         load_sharded_checkpoint(model, checkpoint_dir, strict=False)
     else:
-        logger.warning("Provided path ({}) does not contain pre-trained weights.".format(checkpoint_dir))
+        logger.warning(
+            f"Provided path ({checkpoint_dir}) does not contain pre-trained weights."
+        )
         return False
     return True
 
@@ -39,7 +39,9 @@ def load_trainable_params(model: torch.nn.Module, checkpoint_dir: os.PathLike) -
 def load_valuehead_params(model: torch.nn.Module, checkpoint_dir: os.PathLike) -> bool:
     valuehead_file = os.path.join(checkpoint_dir, VALUE_HEAD_FILE_NAME)
     if not os.path.exists(valuehead_file):
-        logger.warning("Provided path ({}) does not contain valuehead weights.".format(checkpoint_dir))
+        logger.warning(
+            f"Provided path ({checkpoint_dir}) does not contain valuehead weights."
+        )
         return False
     valuehead_state_dict = torch.load(valuehead_file, map_location="cpu")
     model.register_buffer("reward_head_weight", valuehead_state_dict["summary.weight"])

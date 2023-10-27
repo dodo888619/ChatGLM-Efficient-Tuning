@@ -15,7 +15,7 @@ class WebChatModel(ChatModel):
         self.model = None
         self.tokenizer = None
         self.generating_args = GeneratingArguments()
-        if len(args) != 0:
+        if args:
             super().__init__(*args)
 
     def load_model(

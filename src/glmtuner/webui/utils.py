@@ -29,9 +29,11 @@ def can_preview(dataset_dir: str, dataset: list) -> Dict[str, Any]:
     with open(os.path.join(dataset_dir, DATA_CONFIG), "r", encoding="utf-8") as f:
         dataset_info = json.load(f)
     if (
-        len(dataset) > 0
+        dataset
         and "file_name" in dataset_info[dataset[0]]
-        and os.path.isfile(os.path.join(dataset_dir, dataset_info[dataset[0]]["file_name"]))
+        and os.path.isfile(
+            os.path.join(dataset_dir, dataset_info[dataset[0]]["file_name"])
+        )
     ):
         return gr.update(interactive=True)
     else:
@@ -48,16 +50,17 @@ def get_preview(dataset_dir: str, dataset: list) -> Tuple[int, list, Dict[str, A
 
 
 def can_quantize(finetuning_type: str) -> Dict[str, Any]:
-    if finetuning_type not in ["p_tuning", "lora"]:
-        return gr.update(value="", interactive=False)
-    else:
+    if finetuning_type in {"p_tuning", "lora"}:
         return gr.update(interactive=True)
+
+    else:
+        return gr.update(value="", interactive=False)
 
 
 def get_eval_results(path: os.PathLike) -> str:
     with open(path, "r", encoding="utf-8") as f:
         result = json.dumps(json.load(f), indent=4)
-    return "```json\n{}\n```\n".format(result)
+    return f"```json\n{result}\n```\n"
 
 
 def gen_plot(base_model: str, finetuning_type: str, output_dir: str) -> matplotlib.figure.Figure:
@@ -76,7 +79,7 @@ def gen_plot(base_model: str, finetuning_type: str, output_dir: str) -> matplotl
                 steps.append(log_info["current_steps"])
                 losses.append(log_info["loss"])
 
-    if len(losses) == 0:
+    if not losses:
         return None
 
     ax.plot(steps, losses, alpha=0.4, label="original")
@@ -120,6 +123,6 @@ def export_model(
     yield ALERTS["info_exporting"][lang]
     model_args, _, finetuning_args, _ = get_infer_args(args)
     model, tokenizer = load_model_and_tokenizer(model_args, finetuning_args)
-    model.save_pretrained(save_dir, max_shard_size=str(max_shard_size)+"GB")
+    model.save_pretrained(save_dir, max_shard_size=f"{max_shard_size}GB")
     tokenizer.save_pretrained(save_dir)
     yield ALERTS["info_exported"][lang]

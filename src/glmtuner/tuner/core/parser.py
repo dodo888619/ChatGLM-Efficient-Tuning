@@ -58,8 +58,10 @@ def get_train_args(
         "Please enable `predict_with_generate` to save model predictions."
 
     if model_args.quantization_bit is not None:
-        assert finetuning_args.finetuning_type != "full" and finetuning_args.finetuning_type != "freeze", \
-            "Quantization is incompatible with the full-parameter and freeze tuning."
+        assert finetuning_args.finetuning_type not in [
+            "full",
+            "freeze",
+        ], "Quantization is incompatible with the full-parameter and freeze tuning."
 
         assert not (finetuning_args.finetuning_type == "p_tuning" and training_args.fp16), \
             "FP16 training conflicts with quantized P-Tuning."
@@ -89,8 +91,10 @@ def get_train_args(
 
     # Log on each process the small summary:
     logger.info(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}\n"
-        + f"  distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+        (
+            f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}\n"
+            + f"  distributed training: {training_args.local_rank != -1}, 16-bits training: {training_args.fp16}"
+        )
     )
     logger.info(f"Training/evaluation parameters {training_args}")
 
