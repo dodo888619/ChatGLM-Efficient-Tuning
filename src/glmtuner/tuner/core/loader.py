@@ -50,14 +50,13 @@ def load_model_and_tokenizer(
     assert stage == "sft" or finetuning_args.finetuning_type == "lora", \
         "RM and PPO training can only be performed with LoRA method."
 
-    if model_args.quantization_bit is not None:
-        if is_trainable and finetuning_args.finetuning_type == "lora":
-            quantization = "bnb" # use bnb's quantization
-        else:
-            quantization = "cpm" # use cpm's quantization
-    else:
+    if model_args.quantization_bit is None:
         quantization = None
 
+    elif is_trainable and finetuning_args.finetuning_type == "lora":
+        quantization = "bnb" # use bnb's quantization
+    else:
+        quantization = "cpm" # use cpm's quantization
     config_kwargs = {
         "trust_remote_code": True,
         "cache_dir": model_args.cache_dir,
@@ -153,25 +152,25 @@ def load_model_and_tokenizer(
         model.quantize(model_args.quantization_bit) # built-in method in ChatGLM-6B, also an in-place operation
 
     if quantization is not None:
-        logger.info("Quantized model to {} bit.".format(model_args.quantization_bit))
+        logger.info(f"Quantized model to {model_args.quantization_bit} bit.")
 
-    if stage == "rm" or stage == "ppo": # add value head
+    if stage in ["rm", "ppo"]: # add value head
         model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 
-        if stage == "rm" and model_args.checkpoint_dir is not None: # load valuehead weights to evaluate reward model
-            logger.warning("Only the last checkpoint containing valuehead will be loaded as the valuehead.")
-            if load_valuehead_params(model, model_args.checkpoint_dir[-1]):
-                model.v_head.load_state_dict({
-                    "summary.weight": getattr(model, "reward_head_weight"),
-                    "summary.bias": getattr(model, "reward_head_bias")
-                })
+    if stage == "rm" and model_args.checkpoint_dir is not None: # load valuehead weights to evaluate reward model
+        logger.warning("Only the last checkpoint containing valuehead will be loaded as the valuehead.")
+        if load_valuehead_params(model, model_args.checkpoint_dir[-1]):
+            model.v_head.load_state_dict({
+                "summary.weight": getattr(model, "reward_head_weight"),
+                "summary.bias": getattr(model, "reward_head_bias")
+            })
 
-        if stage == "ppo": # load reward model
-            assert is_trainable, "PPO stage cannot be performed at evaluation."
-            assert model_args.reward_model is not None, "Reward model is necessary for PPO training."
-            logger.info("Load reward model from {}".format(model_args.reward_model))
-            model.pretrained_model.load_adapter(model_args.reward_model, "reward", is_trainable=False)
-            assert load_valuehead_params(model, model_args.reward_model), "Reward model is not correctly loaded."
+    if stage == "ppo": # load reward model
+        assert is_trainable, "PPO stage cannot be performed at evaluation."
+        assert model_args.reward_model is not None, "Reward model is necessary for PPO training."
+        logger.info(f"Load reward model from {model_args.reward_model}")
+        model.pretrained_model.load_adapter(model_args.reward_model, "reward", is_trainable=False)
+        assert load_valuehead_params(model, model_args.reward_model), "Reward model is not correctly loaded."
 
     print_trainable_params(model)
 

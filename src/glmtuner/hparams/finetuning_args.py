@@ -52,7 +52,7 @@ class FinetuningArguments:
         if self.num_layer_trainable > 0: # fine-tuning the last n layers if num_layer_trainable > 0
             trainable_layer_ids = [27 - k for k in range(self.num_layer_trainable)]
         else: # fine-tuning the first n layers if num_layer_trainable < 0
-            trainable_layer_ids = [k for k in range(-self.num_layer_trainable)]
+            trainable_layer_ids = list(range(-self.num_layer_trainable))
 
         if self.name_module_trainable == "mlp":
             self.trainable_layers = ["{:d}.mlp".format(idx) for idx in trainable_layer_ids]

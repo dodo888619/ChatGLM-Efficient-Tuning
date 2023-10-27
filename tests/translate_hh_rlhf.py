@@ -12,7 +12,7 @@ def main():
 
     translator = Translator()
     def translate(text: str) -> str:
-        if len(text) == 0:
+        if not text:
             return ""
         if text.startswith("http") or text.startswith("www.") or text.startswith("Reddit.com"):
             return text
@@ -39,7 +39,7 @@ def main():
     else:
         jsondata = []
 
-    
+
     global_patience = 0
     i = len(jsondata)
     while i < len(dataset):

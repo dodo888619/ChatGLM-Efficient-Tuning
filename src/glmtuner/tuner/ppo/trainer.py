@@ -113,7 +113,7 @@ class PPOTrainerForChatGLM(PPOTrainer, PeftTrainer):
                     output_hidden_states=True,
                     return_dict=True
                 )
-            rewards = [reward for reward in values[-1].to(torch.float32)] # use float32 type
+            rewards = list(values[-1].to(torch.float32))
             replace_model(unwrapped_model, target="default")
 
             # Run PPO step

@@ -15,10 +15,7 @@ def process_prompt(prompt: str) -> Tuple[str]:
     prompt = prompt.replace(PROMPT_INPUT, "")
     prompt = prompt.replace(INSTRUCT, "")
     results = prompt.split(SPLITTEXT)
-    if len(results) == 1:
-        return results[0], ""
-    else:
-        return results
+    return (results[0], "") if len(results) == 1 else results
 
 
 if __name__ == "__main__":
@@ -36,7 +33,7 @@ if __name__ == "__main__":
         while len(resp_with_score[0][1]) == 0:
             resp_with_score.pop(0)
 
-        if len(resp_with_score) == 0:
+        if not resp_with_score:
             continue
 
         min_score, max_score = resp_with_score[0][0], resp_with_score[-1][0]

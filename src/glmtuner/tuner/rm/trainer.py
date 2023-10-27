@@ -61,7 +61,13 @@ class PairwiseTrainerForChatGLM(PeftTrainer):
         acc_scores, rej_scores = predict_results.predictions
 
         with open(output_prediction_file, "w", encoding="utf-8") as writer:
-            res: List[str] = []
-            for acc_score, rej_score in zip(acc_scores, rej_scores):
-                res.append(json.dumps({"accept": round(float(acc_score), 2), "reject": round(float(rej_score), 2)}))
+            res: List[str] = [
+                json.dumps(
+                    {
+                        "accept": round(float(acc_score), 2),
+                        "reject": round(float(rej_score), 2),
+                    }
+                )
+                for acc_score, rej_score in zip(acc_scores, rej_scores)
+            ]
             writer.write("\n".join(res))

@@ -27,12 +27,14 @@ class ChatModel:
     ) -> str:
         prefix = prefix + "\n" if prefix else "" # add separator for non-empty prefix
         history = history or []
-        prompt = ""
-        for i, (old_query, response) in enumerate(history):
-            prompt += "[Round {}]\n\n问：{}\n\n答：{}\n\n".format(i+1, old_query, response)
-        prompt += "[Round {}]\n\n问：{}\n\n答：".format(len(history)+1, query)
-        prompt = prefix + prompt
-        return prompt
+        prompt = (
+            "".join(
+                f"[Round {i + 1}]\n\n问：{old_query}\n\n答：{response}\n\n"
+                for i, (old_query, response) in enumerate(history)
+            )
+            + f"[Round {len(history) + 1}]\n\n问：{query}\n\n答："
+        )
+        return prefix + prompt
 
     def process_args(
         self, query: str, history: Optional[List[Tuple[str, str]]] = None, prefix: Optional[str] = None, **input_kwargs
